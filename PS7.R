@@ -1,8 +1,8 @@
 library(SparseGrid)
 
-sg.int<-function(g,...,lower,upper, dimensions)
+sg.int<-function(fun,lower,upper, dim){
   ## package SparseGrid is used in the function, so it is required
-{ require("SparseGrid")
+require("SparseGrid")
 
  ## taking the lowest value of the lower argument
  lower<-floor(lower)
@@ -12,11 +12,19 @@ sg.int<-function(g,...,lower,upper, dimensions)
  
  ## the upper limit must be larger than the lower
  if (any(lower>upper)) stop("lower must be smaller than upper")
-
- ## creating a matrix for the 2 dimensional bounds
- gridss<-as.matrix(expand.grid(seq(lower[1],upper[1]-1,by=1),seq(lower[2],upper[2]-1,by=1)))
  
- sp.grid <- createIntegrationGrid( 'KPU', dimension=dimension, k=5 )
+ ## creating a function to use to make the matrix
+ grid<-function(x){
+   seq(from = lower[x], to = upper[x]-1, by=1)
+ }
+ 
+ ?seq
+ 
+ ## making the matrix
+ gridss<-as.matrix(expand.grid(lapply(1:dim, grid))) 
+ 
+ ## creating an integration grid to use for integration
+ sp.grid <- createIntegrationGrid( 'KPU', dimension=dim, k=5 )
 
  nodes<-gridss[1,]+sp.grid$nodes
 
@@ -31,10 +39,15 @@ sg.int<-function(g,...,lower,upper, dimensions)
 
   }
 
-  gx.sp <- apply(nodes, 1, g,...)
+  gx.sp <- apply(nodes, 1, fun,...)
   val.sp <- gx.sp %*%weights
   val.sp
 }
 
-sg.int(g = x^2, lower = c(4,5,6,7), upper = c(4,5,6,7))
+fun_example<-function(x) x^2
+
+
+sg.int(fun = fun_example, lower = c(4,5,6,7), upper = c(4,5,6,7), dim = 2)
+?nodes
+
 
